@@ -1,13 +1,16 @@
+import 'package:alarm/alarm.dart';
 import 'package:banapresso_todo_exam/home_page.dart';
 import 'package:banapresso_todo_exam/todo/todo.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
 
 
 void main() async {
 
+  WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+  await Alarm.init();
   Hive.registerAdapter(TodoAdapter()); // 등록된 어댑터 사용
   await Hive.openBox<Todo>('todoBox'); // Todo 저장소 열기
 
