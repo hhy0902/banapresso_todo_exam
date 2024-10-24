@@ -17,37 +17,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   TextEditingController titleTextController = TextEditingController();
   var uuid = const Uuid();
-  List<Todo> todoList = [];
-  late Box<Todo> todoBox;
+  // List<Todo> todoList = [];
+  Box<Todo> todoBox = Hive.box<Todo>("todoBox");
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     todoBox = Hive.box<Todo>("todoBox");
-    loadTodos();
-    Alarm.stopAll();
   }
 
-  void loadTodos() {
-    setState(() {
-      todoList = todoBox.values.toList();
-    });
-  }
-
-  void addTodo() {
-    var todo = Todo(
-      title: titleTextController.text,
-      id: uuid.v4(),
-    );
-    todoBox.add(todo); // Hive에 저장
-    loadTodos(); // 최신화
-  }
-
-  void clearTodos() {
-    todoBox.clear(); // 저장된 데이터 삭제
-    loadTodos();
-  }
 
   void setAlarm() async {
     // 알람이 현재 활성화되어 있는지 확인
@@ -118,60 +97,33 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Column(
         children: [
           Expanded(
-            child: ReorderableListView(
-              children: todoList.map((item) {
+            // ReorderableListView.builder 사용해보기?
+            child: ReorderableListView.builder(
+              itemCount: todoBox.values.length,
+              itemBuilder: (context, index) {
                 return Column(
-                  key: ValueKey(item.id),
+                  key: ValueKey(todoBox.values.toList()[index].id), // String을 Key로 변환
                   children: [
                     ListTile(
-                      title: Text(item.title),
-                      subtitle: Text(item.done.toString()),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              setAlarm();
-                            },
-                            icon: Icon(Icons.alarm),
-                          ),
-                          Checkbox(
-                            value: item.done,
-                            onChanged: (value) {
-                              setState(() {
-                                print(value);
-                                item.done = value!;
-                          
-                                // 변경된 값을 Hive의 Box에 저장
-                                int index = todoBox.values.toList().indexOf(item);  // 해당 item의 index를 찾아서
-                                todoBox.putAt(index, item);  // 해당 index에 있는 값을 업데이트
-                          
-                              });
-                            },
-                          ),
-                        ],
-                      ),
+                      title: Text(todoBox.values.toList()[index].title),
                     ),
                     Divider(),
                   ],
                 );
-              }).toList(),
-              onReorder: (int oldIndex, int newIndex) {
-                setState(() {
-                  if (newIndex > oldIndex) {
-                    newIndex -= 1;
-                  }
-                  final item = todoList.removeAt(oldIndex);
-                  todoList.insert(newIndex, item);
-
-                  todoBox.clear(); // 기존 데이터 삭제
-                  for (var todo in todoList) {
-                    todoBox.add(todo); // 새 순서로 데이터 저장
-                  }
-
-                });
+              },
+              onReorder: (oldIndex, newIndex) {
+                if (oldIndex < newIndex) {
+                  newIndex -= 1;
+                }
+                final oldItem = todoBox.values.toList()[oldIndex];
+                final newItem = todoBox.values.toList()[newIndex];
+                print("old : ${oldItem.title}");
+                print("new : ${newItem.title}");
+                todoBox.putAt(newIndex, oldItem);
+                todoBox.putAt(oldIndex, newItem);
               },
             ),
+
           ),
           Row(
             children: [
@@ -184,10 +136,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       print("todoBox : ${element.done}");
                     });
 
-                    todoList.forEach((element) {
-                      // print("todoList : ${element.title}");
-                      print("todoList : ${element.done}");
-                    });
                   });
                 },
                 child: Icon(Icons.telegram),
@@ -195,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    clearTodos();
+
                   });
                 },
                 child: Icon(Icons.delete),
@@ -218,9 +166,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 actions: [
                   TextButton(
                     onPressed: () {
-                      // var todo = Todo(title: titleTextController.text, id: uuid.v4());
-                      // todoList.add(todo);
-                      addTodo();
+                      var todo = Todo(title: titleTextController.text, id: uuid.v4());
+                      todoBox.add(todo);
                       titleTextController.clear();
                       Navigator.pop(context);
                       setState(() {
