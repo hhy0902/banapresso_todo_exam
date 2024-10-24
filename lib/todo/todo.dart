@@ -15,14 +15,18 @@ class Todo {
   @HiveField(2)
   bool done;
 
+  @HiveField(3)
+  DateTime createdAt;
 
-  Todo({required this.id, required this.title, this.done = false,});
+
+  Todo({required this.id, required this.title, this.done = false, required this.createdAt,});
 
   factory Todo.fromJson(Map<String, dynamic> json) {
     return Todo(
       id: json['id'],
       title: json['title'],
       done: json['done'],
+      createdAt: json['createdAt'],
     );
   }
 
@@ -30,11 +34,13 @@ class Todo {
     var id,
     String? title,
     bool? done,
+    DateTime? createdAt,
   }) {
     return Todo(
       id: id ?? this.id,
       title: title ?? this.title,
       done: done ?? this.done,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

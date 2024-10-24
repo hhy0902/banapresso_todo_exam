@@ -3,6 +3,7 @@
 import 'package:banapresso_todo_exam/todo/todo.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import 'package:alarm/alarm.dart';
 
@@ -28,7 +29,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
 
-  void setAlarm() async {
+  void setAlarm(int index) async {
     // 알람이 현재 활성화되어 있는지 확인
     bool isActive = await Alarm.isRinging(42); // ID 42로 설정된 알람의 상태 확인
 
@@ -36,6 +37,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // 알람이 활성화되어 있으면 알람을 정지
       Alarm.stop(42);
       print('알람이 정지되었습니다.');
+
     } else {
 
       // 사용자로부터 시간을 선택하도록 요청
@@ -60,6 +62,10 @@ class _MyHomePageState extends State<MyHomePage> {
           selectedDateTime = selectedDateTime.add(Duration(days: 1));
         }
 
+        setState(() {
+          todoBox.putAt(index, todoBox.values.toList()[index].copyWith(createdAt: selectedDateTime));
+        });
+
         // 알람 설정
         final alarmSettings = AlarmSettings(
           id: 42,  // 알람 ID (고유해야 함)
@@ -79,6 +85,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  String formatTime(DateTime dateTime) {
+    return DateFormat('HH:mm:ss').format(dateTime);  // 24시간 형식
+    // return DateFormat('hh:mm:ss a').format(dateTime); // 12시간 형식 (AM/PM)
+  }
 
   @override
   void dispose() {
@@ -101,11 +111,45 @@ class _MyHomePageState extends State<MyHomePage> {
             child: ReorderableListView.builder(
               itemCount: todoBox.values.length,
               itemBuilder: (context, index) {
+
                 return Column(
                   key: ValueKey(todoBox.values.toList()[index].id), // String을 Key로 변환
                   children: [
                     ListTile(
                       title: Text(todoBox.values.toList()[index].title),
+                      subtitle: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: Text(formatTime(todoBox.values.toList()[index].createdAt),),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                setAlarm(index);
+                              });
+                            },
+                            icon: Icon(Icons.alarm),
+                          ),
+                          Checkbox(
+                            value: todoBox.values.toList()[index].done,
+                            onChanged: (value) {
+                              setState(() {
+                                todoBox.putAt(index, todoBox.values.toList()[index].copyWith(done: value));
+                              });
+                            },
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                todoBox.deleteAt(index);
+                              });
+                            },
+                            icon: Icon(Icons.delete),
+                          ),
+                        ],
+                      ),
                     ),
                     Divider(),
                   ],
@@ -133,7 +177,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                     todoBox.values.forEach((element) {
                       // print("todoBox : ${element.title}");
-                      print("todoBox : ${element.done}");
+                      print("todoBox : ${element.createdAt}");
                     });
 
                   });
@@ -166,7 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 actions: [
                   TextButton(
                     onPressed: () {
-                      var todo = Todo(title: titleTextController.text, id: uuid.v4());
+                      var todo = Todo(title: titleTextController.text, id: uuid.v4(), createdAt: DateTime.now());
                       todoBox.add(todo);
                       titleTextController.clear();
                       Navigator.pop(context);
