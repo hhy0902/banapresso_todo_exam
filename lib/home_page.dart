@@ -63,7 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
         }
 
         setState(() {
-          todoBox.putAt(index, todoBox.values.toList()[index].copyWith(createdAt: selectedDateTime));
+          todoBox.putAt(index, todoBox.values.toList()[index].copyWith(alarmTime: selectedDateTime));
         });
 
         // 알람 설정
@@ -103,6 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("banapresso todo exam"),
+        centerTitle: true,
       ),
       body: Column(
         children: [
@@ -119,7 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       title: Text(todoBox.values.toList()[index].title),
                       subtitle: Padding(
                         padding: EdgeInsets.symmetric(vertical: 10),
-                        child: Text(formatTime(todoBox.values.toList()[index].createdAt),),
+                        child: Text(todoBox.values.toList()[index].alarmTime == null ? '알람 시간 없음' : formatTime(todoBox.values.toList()[index].alarmTime)),
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -136,7 +137,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             value: todoBox.values.toList()[index].done,
                             onChanged: (value) {
                               setState(() {
-                                todoBox.putAt(index, todoBox.values.toList()[index].copyWith(done: value));
+                                todoBox.putAt(index, todoBox.values.toList()[index].copyWith(done: value,));
                               });
                             },
                           ),
@@ -177,7 +178,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                     todoBox.values.forEach((element) {
                       // print("todoBox : ${element.title}");
-                      print("todoBox : ${element.createdAt}");
+                      print("todoBox : ${element.alarmTime}");
                     });
 
                   });
@@ -210,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 actions: [
                   TextButton(
                     onPressed: () {
-                      var todo = Todo(title: titleTextController.text, id: uuid.v4(), createdAt: DateTime.now());
+                      var todo = Todo(title: titleTextController.text, id: uuid.v4(),);
                       todoBox.add(todo);
                       titleTextController.clear();
                       Navigator.pop(context);

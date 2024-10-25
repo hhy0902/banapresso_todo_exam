@@ -20,7 +20,7 @@ class TodoAdapter extends TypeAdapter<Todo> {
       id: fields[0] as dynamic,
       title: fields[1] as String,
       done: fields[2] as bool,
-      createdAt: fields[3] as DateTime,
+      alarmTime: fields[3] as dynamic,
     );
   }
 
@@ -35,7 +35,7 @@ class TodoAdapter extends TypeAdapter<Todo> {
       ..writeByte(2)
       ..write(obj.done)
       ..writeByte(3)
-      ..write(obj.createdAt);
+      ..write(obj.alarmTime);
   }
 
   @override
